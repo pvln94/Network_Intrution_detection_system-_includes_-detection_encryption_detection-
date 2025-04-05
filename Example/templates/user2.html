@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User-2</title>
+</head>
+<body>
+    <h1>User-2: View Data</h1>
+    <button onclick="viewEncryptedData()">View Encrypted Features and Result</button>
+    <button onclick="viewRSAEncryptedKey()">View RSA Encrypted AES Key</button>
+    <button onclick="decryptAndViewAESKey()">Decrypt RSA and View AES Key</button>
+    <div id="output"></div>
+    <script>
+        async function viewEncryptedData() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=view_encrypted_data'
+            });
+            const data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function viewRSAEncryptedKey() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=view_rsa_encrypted_key'
+            });
+            const data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function decryptAndViewAESKey() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=decrypt_and_view_aes_key'
+            });
+            const data = await response.json();
+            if (data.error) {
+                document.getElementById('output').innerText = "Error: " + data.error;
+            } else {
+                const originalData = data.original_data;
+                document.getElementById('output').innerHTML = `
+                    <h2>Decrypted AES Key:</h2>
+                    <pre>${data.decrypted_aes_key}</pre>
+                    <h2>Decrypted Features:</h2>
+                    <pre>${JSON.stringify(data.decrypted_features, null, 2)}</pre>
+                    <h2>Decrypted Result:</h2>
+                    <pre>${data.decrypted_result}</pre>
+                    <h2>Original Data:</h2>
+                    <pre>${JSON.stringify(originalData, null, 2)}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

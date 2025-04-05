@@ -1,0 +1,278 @@
+app.py:
+
+from flask import Flask, render_template, request, jsonify
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.backends import default_backend
+import os
+import base64
+
+app = Flask(__name__)
+
+# Global variables to store data
+encrypted_features = None
+encrypted_result = None
+rsa_encrypted_aes_key = None
+aes_key = None
+iv = None  # Store the IV for consistent decryption
+
+# Generate RSA keys
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048,
+    backend=default_backend()
+)
+public_key = private_key.public_key()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/user1', methods=['POST'])
+def user1():
+    global encrypted_features, encrypted_result, rsa_encrypted_aes_key, aes_key, iv
+
+    # User-1 inputs 5 features
+    features = [request.form[f'feature{i}'] for i in range(1, 6)]
+    result = "Great"
+
+    # Generate AES key and IV
+    aes_key = os.urandom(32)
+    iv = os.urandom(16)  # Store the IV for decryption
+
+    # Encrypt features using AES
+    encrypted_features = []
+    for feature in features:
+        cipher = Cipher(algorithms.AES(aes_key), modes.CFB(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        encrypted_feature = encryptor.update(feature.encode()) + encryptor.finalize()
+        encrypted_features.append(encrypted_feature)
+
+    # Encrypt result using AES
+    cipher = Cipher(algorithms.AES(aes_key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    encrypted_result = encryptor.update(result.encode()) + encryptor.finalize()
+
+    # Encrypt AES key using RSA
+    rsa_encrypted_aes_key = public_key.encrypt(
+        aes_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+
+    return jsonify({
+    'encrypted_features': [base64.b64encode(ef).decode('utf-8') for ef in encrypted_features],
+    'encrypted_result': base64.b64encode(encrypted_result).decode('utf-8'),
+    'aes_key': base64.b64encode(aes_key).decode('utf-8'),  # Encode AES key in Base64
+    'rsa_encrypted_aes_key': base64.b64encode(rsa_encrypted_aes_key).decode('utf-8'),
+    'iv': base64.b64encode(iv).decode('utf-8')  # Share the IV
+})
+
+@app.route('/user2', methods=['GET', 'POST'])
+def user2():
+    global encrypted_features, encrypted_result, rsa_encrypted_aes_key, aes_key, iv
+
+    if request.method == 'POST':
+        action = request.form['action']
+
+        if action == 'view_encrypted_data':
+            return jsonify({
+                'encrypted_features': [base64.b64encode(ef).decode('utf-8') for ef in encrypted_features],
+                'encrypted_result': base64.b64encode(encrypted_result).decode('utf-8'),
+                'iv': base64.b64encode(iv).decode('utf-8')  # Share the IV
+            })
+
+        elif action == 'view_rsa_encrypted_key':
+            return jsonify({
+                'rsa_encrypted_aes_key': base64.b64encode(rsa_encrypted_aes_key).decode('utf-8')
+            })
+
+        elif action == 'decrypt_and_view_aes_key':
+            try:
+                # Ensure proper Base64 padding
+                rsa_encrypted_aes_key_b64 = base64.b64encode(rsa_encrypted_aes_key).decode('utf-8')
+                # Add padding if necessary
+                padding_length = len(rsa_encrypted_aes_key_b64) % 4
+                if padding_length:
+                    rsa_encrypted_aes_key_b64 += '=' * (4 - padding_length)
+
+                # Decode the Base64 string
+                rsa_encrypted_aes_key_bytes = base64.b64decode(rsa_encrypted_aes_key_b64)
+
+                # Decrypt RSA encrypted AES key
+                decrypted_aes_key = private_key.decrypt(
+                    rsa_encrypted_aes_key_bytes,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
+                        label=None
+                    )
+                )
+
+                # Decrypt features using AES
+                decrypted_features = []
+                for ef in encrypted_features:
+                    cipher = Cipher(algorithms.AES(decrypted_aes_key), modes.CFB(iv), backend=default_backend())
+                    decryptor = cipher.decryptor()
+                    decrypted_feature = decryptor.update(ef) + decryptor.finalize()
+                    decrypted_features.append(decrypted_feature.decode('utf-8'))
+
+                # Decrypt result using AES
+                cipher = Cipher(algorithms.AES(decrypted_aes_key), modes.CFB(iv), backend=default_backend())
+                decryptor = cipher.decryptor()
+                decrypted_result = decryptor.update(encrypted_result) + decryptor.finalize()
+
+                return jsonify({
+                    'decrypted_aes_key': base64.b64encode(decrypted_aes_key).decode('utf-8'),
+                    'decrypted_features': decrypted_features,
+                    'decrypted_result': decrypted_result.decode('utf-8'),
+                    'original_data': {
+                        'features': decrypted_features,
+                        'result': decrypted_result.decode('utf-8')
+                    }
+                })
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+    return render_template('user2.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+index.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User-1</title>
+</head>
+<body>
+    <h1>User-1: Enter 5 Features</h1>
+    <form id="user1Form">
+        <input type="text" name="feature1" placeholder="Feature 1" required><br>
+        <input type="text" name="feature2" placeholder="Feature 2" required><br>
+        <input type="text" name="feature3" placeholder="Feature 3" required><br>
+        <input type="text" name="feature4" placeholder="Feature 4" required><br>
+        <input type="text" name="feature5" placeholder="Feature 5" required><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Section to display encrypted data -->
+    <h2>Encrypted Data:</h2>
+    <div id="encryptedDataOutput"></div>
+
+    <script>
+        document.getElementById('user1Form').onsubmit = async (e) => {
+            e.preventDefault();
+            const response = await fetch('/user1', {
+                method: 'POST',
+                body: new FormData(e.target)
+            });
+            const data = await response.json();
+            console.log(data);
+
+            // Display the encrypted data on the page
+            const encryptedDataOutput = document.getElementById('encryptedDataOutput');
+            encryptedDataOutput.innerHTML = `
+                <h3>Encrypted Features:</h3>
+                <pre>${JSON.stringify(data.encrypted_features, null, 2)}</pre>
+                <h3>Encrypted Result:</h3>
+                <pre>${data.encrypted_result}</pre>
+                <h3>AES key:</h3>
+                <pre>${data.aes_key}</pre>
+                <h3>RSA Encrypted AES Key:</h3>
+                <pre>${data.rsa_encrypted_aes_key}</pre>
+                <h3>Initialization Vector (IV):</h3>
+                <pre>${data.iv}</pre>
+            `;
+
+            alert('Data encrypted and sent to User-2');
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+user2.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User-2</title>
+</head>
+<body>
+    <h1>User-2: View Data</h1>
+    <button onclick="viewEncryptedData()">View Encrypted Features and Result</button>
+    <button onclick="viewRSAEncryptedKey()">View RSA Encrypted AES Key</button>
+    <button onclick="decryptAndViewAESKey()">Decrypt RSA and View AES Key</button>
+    <div id="output"></div>
+    <script>
+        async function viewEncryptedData() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=view_encrypted_data'
+            });
+            const data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function viewRSAEncryptedKey() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=view_rsa_encrypted_key'
+            });
+            const data = await response.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function decryptAndViewAESKey() {
+            const response = await fetch('/user2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=decrypt_and_view_aes_key'
+            });
+            const data = await response.json();
+            if (data.error) {
+                document.getElementById('output').innerText = "Error: " + data.error;
+            } else {
+                const originalData = data.original_data;
+                document.getElementById('output').innerHTML = `
+                    <h2>Decrypted AES Key:</h2>
+                    <pre>${data.decrypted_aes_key}</pre>
+                    <h2>Decrypted Features:</h2>
+                    <pre>${JSON.stringify(data.decrypted_features, null, 2)}</pre>
+                    <h2>Decrypted Result:</h2>
+                    <pre>${data.decrypted_result}</pre>
+                    <h2>Original Data:</h2>
+                    <pre>${JSON.stringify(originalData, null, 2)}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
