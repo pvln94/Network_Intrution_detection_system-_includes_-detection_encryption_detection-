@@ -82,9 +82,11 @@ The following features are extracted from network packets to train the model:
 
 ### cmd: npm run dev
 
-![image](https://github.com/user-attachments/assets/fb4b4310-353d-4fe5-a835-1c6cc9f62bf4)
+![image](https://github.com/user-attachments/assets/e27d85a2-2f1a-4b8b-9d94-086e256c44e2)
 
-![image](https://github.com/user-attachments/assets/af5a417e-1093-439c-94d2-9a75077de6fd)
+![image](https://github.com/user-attachments/assets/6fd19657-b574-4d1c-9ff7-a4c7b98e38f6)
+
+
 
 
 
@@ -98,15 +100,15 @@ The following features are extracted from network packets to train the model:
 
 ### cmd: python app.py
 
-![image](https://github.com/user-attachments/assets/f9ae83c2-99ff-433b-ba79-2b82536acfe6)
+![image](https://github.com/user-attachments/assets/93482590-2ac2-4ae4-90c2-299b4ad77c50)
 
+![image](https://github.com/user-attachments/assets/8ad09b06-31e7-4f2c-ac5b-aade3a46d7b0)
 
-![image](https://github.com/user-attachments/assets/3fe1e82c-fc00-4783-99f4-684181756f8d)
 
 
 ## Database:
 ### MongoDB
-![image](https://github.com/user-attachments/assets/29364cf9-0d85-4991-ab2e-69ae731d2666)
+![image](https://github.com/user-attachments/assets/6124c07a-b5e4-49c4-ad68-13f3abbcb4d6)
 
 
 
@@ -114,10 +116,12 @@ The following features are extracted from network packets to train the model:
 ### login: Credentials for user-1,2
 ### User1: *user1, pass1*
 ### User2: *user2, pass2*
-![image](https://github.com/user-attachments/assets/32a6ac88-ba27-4e3e-a64c-e8d3cf7db11e)
+![image](https://github.com/user-attachments/assets/e5534bb8-94b3-4690-869f-e72559a03174)
+
 
 ## User1:
-![image](https://github.com/user-attachments/assets/f39f04f5-1793-409b-9009-71979dc77649)
+![image](https://github.com/user-attachments/assets/145a3e70-888f-4d48-b8eb-e9fbd01f2b8a)
+
 
 ### on clicking *Capture Packet*, using scapy, the required packet features are obtained
 ### Uses of Scapy in Networking
@@ -128,18 +132,24 @@ The following features are extracted from network packets to train the model:
 🔹 Network attacks & penetration testing – Perform ARP spoofing, DoS attacks, etc.
 🔹 Firewall testing – Check if firewalls are blocking certain packets
 
-![image](https://github.com/user-attachments/assets/aecd4de4-5a49-457f-bdc4-4f2809c20a0e)
+![image](https://github.com/user-attachments/assets/0d87e1e0-f91b-4326-a1c9-ac2a8bd1cb0d)
+
+![image](https://github.com/user-attachments/assets/c3dfb791-eff2-48bc-855d-fea840a902e4)
+
+
 
 ### Add Manually
-![image](https://github.com/user-attachments/assets/12884298-08ea-461d-860e-8271b892d8cd)
+![image](https://github.com/user-attachments/assets/71190c92-c1dd-4f9d-a3c6-4d7c9a5168c9)
 
 
 ## User2:
 ### login:
-![image](https://github.com/user-attachments/assets/a66a52fa-14c3-4116-baa9-6c18640c0340)
+![image](https://github.com/user-attachments/assets/4e9e0939-63d6-4c7b-8e51-b20ad15521fe)
 
 ### Fetch logs:
-![image](https://github.com/user-attachments/assets/0b110e4b-d829-4e21-9bfa-4c3a31e8de47)
+![image](https://github.com/user-attachments/assets/09e5a748-41dd-4d64-b7be-c5fb6855f408)
+
+![image](https://github.com/user-attachments/assets/8a84d6c0-8622-410b-8ccb-005766ed6658)
+
 
 ### Decrypt logs:
-![image](https://github.com/user-attachments/assets/9e90d57b-a312-4e0f-9427-845b6b064b44)
