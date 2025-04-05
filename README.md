@@ -149,7 +149,7 @@ The following features are extracted from network packets to train the model:
 ### Fetch logs:
 ![image](https://github.com/user-attachments/assets/09e5a748-41dd-4d64-b7be-c5fb6855f408)
 
-![image](https://github.com/user-attachments/assets/8a84d6c0-8622-410b-8ccb-005766ed6658)
-
+![image](https://github.com/user-attachments/assets/aa9815ce-f675-4c57-9a8d-5baa5aa06b9d)
 
 ### Decrypt logs:
+![image](https://github.com/user-attachments/assets/0e28b1a6-fc9f-4a9c-9886-a5d5693fe17d)
